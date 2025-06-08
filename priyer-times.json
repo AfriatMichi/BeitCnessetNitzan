@@ -1,0 +1,75 @@
+{
+  "synagogues": {
+    "synagogue1": {
+      "name": "בית כנסת ראשי",
+      "icon": "🕌",
+      "weekday": {
+        "shacharit": "6:30",
+        "mincha": "19:15",
+        "maariv": "20:00"
+      },
+      "shabbat": {
+        "shacharit": "8:30",
+        "mincha": "19:30",
+        "maariv": "20:15"
+      }
+    },
+    "synagogue2": {
+      "name": "בית כנסת אור תורה",
+      "icon": "🏛️",
+      "weekday": {
+        "shacharit": "6:45",
+        "mincha": "19:20",
+        "maariv": "20:05"
+      },
+      "shabbat": {
+        "shacharit": "9:00",
+        "mincha": "19:30",
+        "maariv": "20:15"
+      }
+    },
+    "synagogue3": {
+      "name": "בית כנסת נר דוד",
+      "icon": "⛪",
+      "weekday": {
+        "shacharit": "6:15",
+        "mincha": "19:10",
+        "maariv": "19:55"
+      },
+      "shabbat": {
+        "shacharit": "8:00",
+        "mincha": "19:30",
+        "maariv": "20:15"
+      }
+    },
+    "synagogue4": {
+      "name": "בית כנסת שערי ציון",
+      "icon": "🕍",
+      "weekday": {
+        "shacharit": "7:00",
+        "mincha": "19:25",
+        "maariv": "20:10"
+      },
+      "shabbat": {
+        "shacharit": "8:45",
+        "mincha": "19:30",
+        "maariv": "20:15"
+      }
+    },
+    "synagogue5": {
+      "name": "בית כנסת מעלה אדומים",
+      "icon": "🏺",
+      "weekday": {
+        "shacharit": "6:00",
+        "mincha": "19:00",
+        "maariv": "19:45"
+      },
+      "shabbat": {
+        "shacharit": "8:15",
+        "mincha": "19:30",
+        "maariv": "20:15"
+      }
+    }
+  },
+  "lastUpdated": "2025-06-09T12:00:00Z"
+}
