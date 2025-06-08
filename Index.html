@@ -393,6 +393,60 @@
     </div>
 
     <script>
+        let prayerTimesData = null;
+
+        // טעינת נתוני זמני התפילות
+        async function loadPrayerTimes() {
+            try {
+                const response = await fetch('./prayer-times.json');
+                if (!response.ok) {
+                    throw new Error('Failed to load prayer times');
+                }
+                prayerTimesData = await response.json();
+                updateDisplayedTimes();
+            } catch (error) {
+                console.error('Error loading prayer times:', error);
+                // אם יש שגיאה, השתמש בזמנים הקבועים
+            }
+        }
+
+        // עדכון הזמנים המוצגים
+        function updateDisplayedTimes() {
+            if (!prayerTimesData) return;
+
+            Object.keys(prayerTimesData.synagogues).forEach(synagogueId => {
+                const synagogue = prayerTimesData.synagogues[synagogueId];
+                const page = document.getElementById(synagogueId);
+                if (!page) return;
+
+                // עדכון כותרת
+                const title = page.querySelector('.synagogue-title');
+                if (title) title.textContent = synagogue.name;
+
+                // עדכון זמני חול
+                updateTimeSection(page, 'weekday', synagogue.weekday);
+                
+                // עדכון זמני שבת
+                updateTimeSection(page, 'shabbat', synagogue.shabbat);
+            });
+        }
+
+        function updateTimeSection(page, section, times) {
+            const rows = page.querySelectorAll('.time-row');
+            rows.forEach(row => {
+                const prayerName = row.querySelector('.prayer-name').textContent;
+                const timeSpan = row.querySelector('.prayer-time');
+                
+                if (prayerName === 'שחרית' && times.shacharit) {
+                    timeSpan.textContent = times.shacharit;
+                } else if (prayerName === 'מנחה' && times.mincha) {
+                    timeSpan.textContent = times.mincha;
+                } else if (prayerName === 'מעריב' && times.maariv) {
+                    timeSpan.textContent = times.maariv;
+                }
+            });
+        }
+
         function showPrayerTimes(synagogueId) {
             // הסתר דף הבית
             document.getElementById('homepage').style.display = 'none';
@@ -413,6 +467,9 @@
             // הצג דף הבית
             document.getElementById('homepage').style.display = 'block';
         }
+
+        // טעינת הנתונים בעת טעינת הדף
+        document.addEventListener('DOMContentLoaded', loadPrayerTimes);
     </script>
 </body>
-                  </html>
+</html>
