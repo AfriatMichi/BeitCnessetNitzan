@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול זמני תפילות - ניצן</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .login-form, .admin-panel {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .admin-panel {
+            display: none;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+        }
+
+        .btn-logout {
+            background: #dc3545;
+            width: auto;
+            margin-bottom: 20px;
+        }
+
+        .btn-logout:hover {
+            background: #c82333;
+        }
+
+        .synagogue-section {
+            border: 2px solid #e1e5e9;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .synagogue-title {
+            font-size: 20px;
+            color: #667eea;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .times-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .time-input {
+            text-align: center;
+        }
+
+        .section-label {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+            text-align: center;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .error-message, .success-message {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        @media (max-width: 600px) {
+            .times-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- טופס התחברות -->
+        <div id="loginForm" class="login-form">
+            <div class="header">
+                <h1>🔐 ניהול זמני תפילות</h1>
+                <p>כניסת גבאים - ניצן</p>
+            </div>
+
+            <div id="loginError" class="error-message" style="display: none;"></div>
+
+            <form onsubmit="login(event)">
+                <div class="form-group">
+                    <label for="password">סיסמת גבאי:</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn">כניסה</button>
+            </form>
+        </div>
+
+        <!-- פאנל ניהול -->
+        <div id="adminPanel" class="admin-panel">
+            <div class="header">
+                <button onclick="logout()" class="btn btn-logout">התנתק</button>
+                <h1>🕌 עריכת זמני תפילות</h1>
+            </div>
+
+            <div id="updateMessage" style="display: none;"></div>
+
+            <form onsubmit="updateTimes(event)" id="timesForm">
+                <!-- בית כנסת ראשי -->
+                <div class="synagogue-section">
+                    <div class="synagogue-title">🕌 בית כנסת ראשי</div>
+                    
+                    <div class="section-label">ימי חול</div>
+                    <div class="times-row">
+                        <div class="form-group">
+                            <label>שחרית</label>
+                            <input type="time" name="synagogue1_weekday_shacharit" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מנחה</label>
+                            <input type="time" name="synagogue1_weekday_mincha" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מעריב</label>
+                            <input type="time" name="synagogue1_weekday_maariv" class="time-input" required>
+                        </div>
+                    </div>
+
+                    <div class="section-label">שבת קודש</div>
+                    <div class="times-row">
+                        <div class="form-group">
+                            <label>שחרית</label>
+                            <input type="time" name="synagogue1_shabbat_shacharit" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מנחה</label>
+                            <input type="time" name="synagogue1_shabbat_mincha" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מעריב</label>
+                            <input type="time" name="synagogue1_shabbat_maariv" class="time-input" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- בית כנסת אור תורה -->
+                <div class="synagogue-section">
+                    <div class="synagogue-title">🏛️ בית כנסת אור תורה</div>
+                    
+                    <div class="section-label">ימי חול</div>
+                    <div class="times-row">
+                        <div class="form-group">
+                            <label>שחרית</label>
+                            <input type="time" name="synagogue2_weekday_shacharit" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מנחה</label>
+                            <input type="time" name="synagogue2_weekday_mincha" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מעריב</label>
+                            <input type="time" name="synagogue2_weekday_maariv" class="time-input" required>
+                        </div>
+                    </div>
+
+                    <div class="section-label">שבת קודש</div>
+                    <div class="times-row">
+                        <div class="form-group">
+                            <label>שחרית</label>
+                            <input type="time" name="synagogue2_shabbat_shacharit" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מנחה</label>
+                            <input type="time" name="synagogue2_shabbat_mincha" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מעריב</label>
+                            <input type="time" name="synagogue2_shabbat_maariv" class="time-input" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- בית כנסת נר דוד -->
+                <div class="synagogue-section">
+                    <div class="synagogue-title">⛪ בית כנסת נר דוד</div>
+                    
+                    <div class="section-label">ימי חול</div>
+                    <div class="times-row">
+                        <div class="form-group">
+                            <label>שחרית</label>
+                            <input type="time" name="synagogue3_weekday_shacharit" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מנחה</label>
+                            <input type="time" name="synagogue3_weekday_mincha" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מעריב</label>
+                            <input type="time" name="synagogue3_weekday_maariv" class="time-input" required>
+                        </div>
+                    </div>
+
+                    <div class="section-label">שבת קודש</div>
+                    <div class="times-row">
+                        <div class="form-group">
+                            <label>שחרית</label>
+                            <input type="time" name="synagogue3_shabbat_shacharit" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מנחה</label>
+                            <input type="time" name="synagogue3_shabbat_mincha" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מעריב</label>
+                            <input type="time" name="synagogue3_shabbat_maariv" class="time-input" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- בית כנסת שערי ציון -->
+                <div class="synagogue-section">
+                    <div class="synagogue-title">🕍 בית כנסת שערי ציון</div>
+                    
+                    <div class="section-label">ימי חול</div>
+                    <div class="times-row">
+                        <div class="form-group">
+                            <label>שחרית</label>
+                            <input type="time" name="synagogue4_weekday_shacharit" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מנחה</label>
+                            <input type="time" name="synagogue4_weekday_mincha" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מעריב</label>
+                            <input type="time" name="synagogue4_weekday_maariv" class="time-input" required>
+                        </div>
+                    </div>
+
+                    <div class="section-label">שבת קודש</div>
+                    <div class="times-row">
+                        <div class="form-group">
+                            <label>שחרית</label>
+                            <input type="time" name="synagogue4_shabbat_shacharit" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מנחה</label>
+                            <input type="time" name="synagogue4_shabbat_mincha" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מעריב</label>
+                            <input type="time" name="synagogue4_shabbat_maariv" class="time-input" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- בית כנסת מעלה אדומים -->
+                <div class="synagogue-section">
+                    <div class="synagogue-title">🏺 בית כנסת מעלה אדומים</div>
+                    
+                    <div class="section-label">ימי חול</div>
+                    <div class="times-row">
+                        <div class="form-group">
+                            <label>שחרית</label>
+                            <input type="time" name="synagogue5_weekday_shacharit" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מנחה</label>
+                            <input type="time" name="synagogue5_weekday_mincha" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מעריב</label>
+                            <input type="time" name="synagogue5_weekday_maariv" class="time-input" required>
+                        </div>
+                    </div>
+
+                    <div class="section-label">שבת קודש</div>
+                    <div class="times-row">
+                        <div class="form-group">
+                            <label>שחרית</label>
+                            <input type="time" name="synagogue5_shabbat_shacharit" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מנחה</label>
+                            <input type="time" name="synagogue5_shabbat_mincha" class="time-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>מעריב</label>
+                            <input type="time" name="synagogue5_shabbat_maariv" class="time-input" required>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">💾 שמור עדכונים</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        // התחברות
+        async function login(event) {
+            event.preventDefault();
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
+
+            try {
+                // בדיקת סיסמה מול GitHub Secrets
+                const response = await fetch('https://api.github.com/repos/YOUR_USERNAME/YOUR_REPO/actions/secrets', {
+                    headers: {
+                        'Authorization': `token ${await getGitHubToken()}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (password === 'Admin1' || password === 'Admin2') {
+                    currentUser = password;
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('adminPanel').style.display = 'block';
+                    await loadCurrentTimes();
+                } else {
+                    throw new Error('סיסמה שגויה');
+                }
+            } catch (error) {
+                errorDiv.textContent = 'סיסמה שגויה או שגיאת חיבור';
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // התנתקות
+        function logout() {
+            currentUser = null;
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('password').value = '';
+            document.getElementById('loginError').style.display = 'none';
+        }
+
+        // טעינת זמנים נוכחיים
+        async function loadCurrentTimes() {
+            try {
+                const response = await fetch('./prayer-times.json');
+                if (response.ok) {
+                    const data = await response.json();
+                    populateForm(data);
+                }
+            } catch (error) {
+                console.error('Error loading current times:', error);
+            }
+        }
+
+        // מילוי הטופס עם הזמנים הנוכחיים
+        function populateForm(data) {
+            Object.keys(data.synagogues).forEach(synagogueId => {
+                const synagogue = data.synagogues[synagogueId];
+                
+                // ימי חול
+                setFormValue(`${synagogueId}_weekday_shacharit`, synagogue.weekday.shacharit);
+                setFormValue(`${synagogueId}_weekday_mincha`, synagogue.weekday.mincha);
+                setFormValue(`${synagogueId}_weekday_maariv`, synagogue.weekday.maariv);
+                
+                // שבת
+                setFormValue(`${synagogueId}_shabbat_shacharit`, synagogue.shabbat.shacharit);
+                setFormValue(`${synagogueId}_shabbat_mincha`, synagogue.shabbat.mincha);
+                setFormValue(`${synagogueId}_shabbat_maariv`, synagogue.shabbat.maariv);
+            });
+        }
+
+        function setFormValue(name, value) {
+            const input = document.querySelector(`input[name="${name}"]`);
+            if (input && value) {
+                input.value = value;
+            }
+        }
+
+        // עדכון זמנים
+        async function updateTimes(event) {
+            event.preventDefault();
+            const form = document.getElementById('timesForm');
+            const messageDiv = document.getElementById('updateMessage');
+            
+            form.classList.add('loading');
+
+            try {
+                const formData = new FormData(form);
+                const updatedData = buildDataFromForm(formData);
+                
+                // עדכון הקובץ ב-GitHub
+                await updateGitHubFile(updatedData);
+                
+                messageDiv.className = 'success-message';
+                messageDiv.textContent = '✅ הזמנים עודכנו בהצלחה!';
+                messageDiv.style.display = 'block';
+                
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 3000);
+
+            } catch (error) {
+                messageDiv.className = 'error-message';
+                messageDiv.textContent = '❌ שגיאה בעדכון הזמנים: ' + error.message;
+                messageDiv.style.display = 'block';
+            }
+
+            form.classList.remove('loading');
+        }
+
+        // בניית אובייקט הנתונים מהטופס
+        function buildDataFromForm(formData) {
+            const data = {
+                synagogues: {
+                    synagogue1: {
+                        name: "בית כנסת ראשי",
+                        icon: "🕌",
+                        weekday: {
+                            shacharit: formData.get('synagogue1_weekday_shacharit'),
+                            mincha: formData.get('synagogue1_weekday_mincha'),
+                            maariv: formData.get('synagogue1_weekday_maariv')
+                        },
+                        shabbat: {
+                            shacharit: formData.get('synagogue1_shabbat_shacharit'),
+                            mincha: formData.get('synagogue1_shabbat_mincha'),
+                            maariv: formData.get('synagogue1_shabbat_maariv')
+                        }
+                    },
+                    synagogue2: {
+                        name: "בית כנסת אור תורה",
+                        icon: "🏛️",
+  
